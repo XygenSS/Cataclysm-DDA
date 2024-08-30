@@ -263,7 +263,7 @@
       "retool_ar15_50beowulf_short",
       "retool_ar15_50beowulf_medium"
     ],
-	"//2": "AR style rifles with buffer tubes normally cannot accept side-folding stocks without modification"
+	"//2": "AR style rifles with buffer tubes normally cannot accept side-folding stocks without modification",
     "use_action": {
       "type": "transform",
       "msg": "You fold the stock to the side.",
