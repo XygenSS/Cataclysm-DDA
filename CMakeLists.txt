@@ -211,7 +211,7 @@ message(STATUS "LOCALIZE                      : ${LOCALIZE}")
 message(STATUS "USE_XDG_DIR                   : ${USE_XDG_DIR}")
 message(STATUS "USE_HOME_DIR                  : ${USE_HOME_DIR}")
 message(STATUS "LANGUAGES                     : ${LANGUAGES}")
-message(STATUS "See doc/COMPILING/COMPILING-CMAKE.md for details and more info --")
+message(STATUS "See doc/c++/COMPILING-CMAKE.md for details and more info --")
 
 if (NOT MSVC)
     set(CATA_WARNINGS
@@ -255,7 +255,7 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
             "This project requires an out of source build. \
              Remove the file 'CMakeCache.txt' found in this directory before continuing; \
              create a separate build directory and run 'cmake [options] <srcs>' from there. \
-             See doc/COMPILING/COMPILING-CMAKE.md for details and more info.")
+             See doc/c++/COMPILING-CMAKE.md for details and more info.")
 endif ()
 
 #set(THREADS_USE_PTHREADS_WIN32 True)
@@ -284,7 +284,7 @@ if (TILES)
                 "This project requires SDL2 to be installed to compile in graphical mode.  \
                  Please install the SDL2 development libraries, \
                  or try compiling without -DTILES=1 for a text-only compilation. \
-                 See doc/COMPILING/COMPILING-CMAKE.md for details and more info.")
+                 See doc/c++/COMPILING-CMAKE.md for details and more info.")
     endif ()
 
     message(STATUS "Searching for SDL2_TTF library --")
@@ -294,7 +294,7 @@ if (TILES)
                 "This project requires SDL2_ttf to be installed to compile in graphical mode. \
                  Please install the SDL2_ttf development libraries, \
                  or try compiling without -DTILES=1 for a text-only compilation. \
-                 See doc/COMPILING/COMPILING-CMAKE.md for details and more info.")
+                 See doc/c++/COMPILING-CMAKE.md for details and more info.")
     endif ()
 
     message(STATUS "Searching for SDL2_image library --")
@@ -304,7 +304,7 @@ if (TILES)
                 "This project requires SDL2_image to be installed to compile in graphical mode. \
                  Please install the SDL2_image development libraries, \
                  or try compiling without -DTILES=1 for a text-only compilation. \
-                 See doc/COMPILING/COMPILING-CMAKE.md for details and more info.")
+                 See doc/c++/COMPILING-CMAKE.md for details and more info.")
     endif ()
     add_definitions(-DTILES)
 endif ()
@@ -317,6 +317,18 @@ if (CURSES)
     if (WIN32 AND VCPKG_MANIFEST_MODE)
         find_package(unofficial-pdcurses CONFIG)
         if(TARGET unofficial::pdcurses::pdcurses)
+            get_target_property(_IMPORTED_CONFIGURATIONS unofficial::pdcurses::pdcurses
+                IMPORTED_CONFIGURATIONS
+            )
+            if (RELEASE AND "Release" IN_LIST _IMPORTED_CONFIGURATIONS)
+                get_target_property(_IMPORTED_LOCATION unofficial::pdcurses::pdcurses
+                IMPORTED_IMPLIB_RELEASE)
+            elseif("Debug" IN_LIST _IMPORTED_CONFIGURATIONS)
+                get_target_property(_IMPORTED_LOCATION unofficial::pdcurses::pdcurses
+                IMPORTED_IMPLIB_DEBUG)
+            endif()
+            set_target_properties(unofficial::pdcurses::pdcurses PROPERTIES
+                IMPORTED_LOCATION ${_IMPORTED_LOCATION})
             set(USE_PDCURSES TRUE)
         endif()
     elseif(MSYS2)
@@ -346,7 +358,7 @@ if (CURSES)
                 "This project requires ncurses to be installed to be compiled in text-only mode. \
                  Please install the ncurses development libraries, \
                  or try compiling with -DTILES=1 for a graphical compilation. \
-                 See doc/COMPILING/COMPILING-CMAKE.md for details and more info")
+                 See doc/c++/COMPILING-CMAKE.md for details and more info")
     endif ()
     if (NOT DYNAMIC_LINKING)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNCURSES_STATIC")
@@ -354,14 +366,6 @@ if (CURSES)
 endif ()
 
 if (SOUND)
-    # You need TILES to be able to use SOUND
-    if (NOT TILES)
-        message(FATAL_ERROR
-                "You must enable graphical support with -DTILES=1 \
-                 to be able to enable sound support. \
-                 See doc/COMPILING/COMPILING-CMAKE.md for details and more info.")
-    endif ()
-
     # Sound requires SDL_mixer library
     message(STATUS "Searching for SDL2_mixer library --")
     find_package(SDL2_mixer)
@@ -370,7 +374,7 @@ if (SOUND)
         message(FATAL_ERROR
                 "You need the SDL2_mixer development library \
                     to be able to compile with sound enabled. \
-                    See doc/COMPILING/COMPILING-CMAKE.md for details and more info.")
+                    See doc/c++/COMPILING-CMAKE.md for details and more info.")
     endif()
 endif ()
 

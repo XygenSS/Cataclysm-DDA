@@ -167,6 +167,7 @@ parsers = {
     "limb_score": parse_limb_score,
     "loot_zone": parse_loot_zone,
     "magazine": parse_magazine,
+    "magic_type": dummy_parser,
     "map_extra": parse_map_extra,
     "mapgen": parse_mapgen,
     "martial_art": parse_martial_art,
@@ -241,10 +242,12 @@ parsers = {
     "temperature_removal_blacklist": dummy_parser,
     "ter_furn_transform": parse_ter_furn_transform,
     "terrain": parse_terrain,
+    "ter_furn_migration": dummy_parser,
     "trait_blacklist": dummy_parser,
     "trait_group": dummy_parser,
     "trait_migration": dummy_parser,
     "trap": parse_trap,
+    "trap_migration": dummy_parser,
     "tool": parse_generic,
     "tool_armor": parse_generic,
     "tool_quality": parse_tool_quality,
@@ -263,5 +266,5 @@ parsers = {
     "weapon_category": parse_weapon_category,
     "weather_type": parse_weather_type,
     "wheel": parse_generic,
-    "widget": parse_widget
+    "widget": parse_widget,
 }

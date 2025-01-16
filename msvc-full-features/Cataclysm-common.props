@@ -104,9 +104,9 @@
         $(ProjectDir)vcpkg_installed\$(VcpkgTripet)\$(VcpkgTriplet)\lib;%(AdditionalLibraryDirectories)
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>
-        brotlicommon-static.lib;
-        brotlidec-static.lib;
-        brotlienc-static.lib;
+        brotlicommon.lib;
+        brotlidec.lib;
+        brotlienc.lib;
         bz2$(VcpkgLibSuffix).lib;
         FLAC.lib;
         FLAC++.lib;
@@ -120,7 +120,7 @@
         pdcurses.lib;
         SDL2_image-static$(VcpkgLibSuffix).lib;
         SDL2_mixer-static$(VcpkgLibSuffix).lib;
-        SDL2_ttf.lib;
+        SDL2_ttf$(VcpkgLibSuffix).lib;
         SDL2-static$(VcpkgLibSuffix).lib;
         syn123.lib;
         turbojpeg.lib;
