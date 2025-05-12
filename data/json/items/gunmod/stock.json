@@ -24,7 +24,7 @@
     "name": { "str": "adjustable stock" },
     "description": "Standard issue multi-position adjustable stock made of strong polymers.",
     "//": "USGI M4 Mil-spec waffle stock charliescustomclones.com/usgi-mil-spec-m4-waffle-stock-for-colt-contract/",
-	"//2": "UNUSED: Due to how the current gunmod system works it is assumed that unmodded guns have a 'default stock' that magically vanishes when modded."
+    "//2": "UNUSED: Due to how the current gunmod system works it is assumed that unmodded guns have a 'default stock' that magically vanishes when modded.",
     "integral_volume": "200 ml",
     "integral_weight": "400 g",
     "integral_longest_side": "4 cm",
@@ -38,7 +38,7 @@
     "name": { "str": "tactical stock" },
     "description": "A popular aftermarket adjustable stock with an improved ergonomic design and a lighter weight.",
     "//": "Magpul MOE magpul.com/moe-carbine-stock-mil-spec.html",
-	"//2": "This could represent any of the hundreds of aftermarket stocks out there really",
+    "//2": "This could represent any of the hundreds of aftermarket stocks out there really",
     "weight": "238 g",
     "integral_volume": "0 ml",
     "integral_weight": "0 g",
@@ -63,20 +63,20 @@
     "integral_longest_side": "2 cm",
     "dispersion_modifier": -5,
     "handling_modifier": 8,
-	"aim_speed_modifier": 0,
+    "aim_speed_modifier": 0,
     "reload_modifier": -1,
-	"pocket_data": [
-    {
-      "pocket_type": "CONTAINER",
-      "rigid": true,
-      "watertight": true,
-      "max_contains_volume": "24 ml",
-      "max_contains_weight": "45 g",
-	  "max_item_length": "50 mm",
-      "moves": 300,
-      "description": "A hidden battery compartment, secured with a watertight screw.  Can store two light batteries, or multiple coin-cell batteries."
-    }
-  ],
+    "pocket_data": [
+      {
+        "pocket_type": "CONTAINER",
+        "rigid": true,
+        "watertight": true,
+        "max_contains_volume": "24 ml",
+        "max_contains_weight": "45 g",
+        "max_item_length": "50 mm",
+        "moves": 300,
+        "description": "A hidden battery compartment, secured with a watertight screw.  Can store two light batteries, or multiple coin-cell batteries."
+      }
+    ],
     "price": "100 USD",
     "price_postapoc": "5 USD"
   },
@@ -155,7 +155,7 @@
     "aim_speed_modifier": 2,
     "reload_modifier": 0,
     "use_action": { "type": "transform", "msg": "You extend the stock.", "menu_text": "Extend", "target": "mod_stock_pdw", "moves": 100 },
-	"flags": [ "FOLDED_STOCK" ]
+    "flags": [ "FOLDED_STOCK" ]
   },
   {
     "id": "mod_stock_thumbhole",
@@ -192,18 +192,16 @@
     "handling_modifier": 1,
     "aim_speed_modifier": 1,
     "reload_modifier": -10,
-	"pocket_data": [
-    {
-      "pocket_type": "CONTAINER",
-      "max_item_length": "240 mm",
-      "max_contains_volume": "750 ml",
-      "max_contains_weight": "2 kg",
-      "moves": 40,
-      "flag_restriction": [
-        "MAG_COMPACT"
-      ],
-    }
-  ],
+    "pocket_data": [
+      {
+        "pocket_type": "CONTAINER",
+        "max_item_length": "240 mm",
+        "max_contains_volume": "750 ml",
+        "max_contains_weight": "2 kg",
+        "moves": 40,
+        "flag_restriction": [ "MAG_COMPACT" ]
+      }
+    ],
     "price": "380 USD",
     "price_postapoc": "5 USD"
   },
@@ -264,7 +262,7 @@
       "retool_ar15_50beowulf_short",
       "retool_ar15_50beowulf_medium"
     ],
-	"//2": "AR style rifles with buffer tubes normally cannot accept side-folding stocks without modification",
+    "//2": "AR style rifles with buffer tubes normally cannot accept side-folding stocks without modification",
     "use_action": {
       "type": "transform",
       "msg": "You fold the stock to the side.",
