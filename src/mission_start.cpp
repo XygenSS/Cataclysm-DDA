@@ -1,33 +1,35 @@
 #include "mission.h" // IWYU pragma: associated
 
+#include <array>
+#include <cstddef>
 #include <memory>
-#include <new>
 #include <optional>
+#include <set>
 #include <vector>
 
 #include "avatar.h"
 #include "character.h"
 #include "computer.h"
 #include "coordinates.h"
+#include "current_map.h"
 #include "debug.h"
-#include "enum_traits.h"
+#include "dialogue.h"
 #include "game.h"
-#include "game_constants.h"
 #include "item.h"
 #include "line.h"
 #include "map.h"
 #include "map_iterator.h"
+#include "map_scale_constants.h"
 #include "mapdata.h"
 #include "messages.h"
 #include "npc.h"
-#include "omdata.h"
 #include "overmap.h"
 #include "overmapbuffer.h"
 #include "point.h"
 #include "rng.h"
 #include "string_formatter.h"
+#include "talker.h"
 #include "translations.h"
-#include "units.h"
 
 static const furn_str_id furn_f_bed( "f_bed" );
 static const furn_str_id furn_f_console( "f_console" );
@@ -61,7 +63,7 @@ void mission_start::kill_nemesis( mission * )
     // Pick an area for the nemesis to spawn
 
     // Force z = 0 for overmapbuffer::find_random. (spawning on a rooftop is valid!)
-    const tripoint_abs_omt center = { get_player_character().global_omt_location().xy(), 0 };
+    const tripoint_abs_omt center = { get_player_character().pos_abs_omt().xy(), 0 };
     tripoint_abs_omt site = tripoint_abs_omt::invalid;
 
     static const std::array<float, 3> attempts_multipliers {1.0f, 1.5f, 2.f};
@@ -168,13 +170,15 @@ void mission_start::place_npc_software( mission *miss )
     if( type == "house" ) {
         place = mission_util::random_house_in_closest_city();
     } else {
-        place = overmap_buffer.find_closest( dev->global_omt_location(), type, 0, false );
+        place = overmap_buffer.find_closest( dev->pos_abs_omt(), type, 0, false );
     }
     miss->target = place;
     overmap_buffer.reveal( place, 6 );
 
     tinymap compmap;
     compmap.load( place, false );
+    // Redundant as long as map operations aren't using get_map() in a transitive call chain. Added for future proofing.
+    swap_map swap( *compmap.cast_to_map() );
     tripoint_omt_ms comppoint;
 
     oter_id oter = overmap_buffer.ter( place );
@@ -202,13 +206,13 @@ void mission_start::place_deposit_box( mission *miss )
     // Npc joins you
     p->set_attitude( NPCATT_FOLLOW );
     tripoint_abs_omt site =
-        overmap_buffer.find_closest( p->global_omt_location(), "bank", 0, false );
+        overmap_buffer.find_closest( p->pos_abs_omt(), "bank", 0, false );
     if( site.is_invalid() ) {
-        site = overmap_buffer.find_closest( p->global_omt_location(), "office_tower_1", 0, false );
+        site = overmap_buffer.find_closest( p->pos_abs_omt(), "office_tower_1", 0, false );
     }
 
     if( site.is_invalid() ) {
-        site = p->global_omt_location();
+        site = p->pos_abs_omt();
         debugmsg( "Couldn't find a place for deposit box" );
     }
 
@@ -217,6 +221,8 @@ void mission_start::place_deposit_box( mission *miss )
 
     tinymap compmap;
     compmap.load( site, false );
+    // Redundant as long as map operations aren't using get_map() in a transitive call chain. Added for future proofing.
+    swap_map swap( *compmap.cast_to_map() );
     std::vector<tripoint_omt_ms> valid;
     for( const tripoint_omt_ms &p : compmap.points_on_zlevel() ) {
         if( compmap.ter( p ) == ter_t_floor ) {
@@ -236,7 +242,7 @@ void mission_start::place_deposit_box( mission *miss )
 
 void mission_start::find_safety( mission *miss )
 {
-    const tripoint_abs_omt place = get_player_character().global_omt_location();
+    const tripoint_abs_omt place = get_player_character().pos_abs_omt();
     for( int radius = 0; radius <= 20; radius++ ) {
         for( int dist = 0 - radius; dist <= radius; dist++ ) {
             int offset = rng( 0, 3 ); // Randomizes the direction we check first
@@ -317,7 +323,7 @@ void mission_start::reveal_refugee_center( mission *miss )
     }
 
     const tripoint_abs_omt source_road = overmap_buffer.find_closest(
-            get_player_character().global_omt_location(), "road",
+            get_player_character().pos_abs_omt(), "road",
             3, false );
     const tripoint_abs_omt dest_road = overmap_buffer.find_closest( *target_pos, "road", 3, false );
 
@@ -352,6 +358,8 @@ void static create_lab_consoles(
 
         tinymap compmap;
         compmap.load( om_place, false );
+        // Redundant as long as map operations aren't using get_map() in a transitive call chain. Added for future proofing.
+        swap_map swap( *compmap.cast_to_map() );
 
         tripoint_omt_ms comppoint = find_potential_computer_point( compmap );
 
@@ -370,7 +378,7 @@ void mission_start::create_lab_console( mission *miss )
 {
     Character &player_character = get_player_character();
     // Pick a lab that has spaces on z = -1: e.g., in hidden labs.
-    tripoint_abs_omt loc = player_character.global_omt_location();
+    tripoint_abs_omt loc = player_character.pos_abs_omt();
     loc.z() = -1;
     const tripoint_abs_omt place = overmap_buffer.find_closest( loc, "lab", 0, false );
 
@@ -379,14 +387,14 @@ void mission_start::create_lab_console( mission *miss )
 
     // Target the lab entrance.
     const tripoint_abs_omt target = mission_util::target_closest_lab_entrance( place, 2, miss );
-    mission_util::reveal_road( player_character.global_omt_location(), target, overmap_buffer );
+    mission_util::reveal_road( player_character.pos_abs_omt(), target, overmap_buffer );
 }
 
 void mission_start::create_hidden_lab_console( mission *miss )
 {
     Character &player_character = get_player_character();
     // Pick a hidden lab entrance.
-    tripoint_abs_omt loc = player_character.global_omt_location();
+    tripoint_abs_omt loc = player_character.pos_abs_omt();
     loc.z() = -1;
     tripoint_abs_omt place = overmap_buffer.find_closest( loc, "basement_hidden_lab_stairs", 0, false );
     place.z() = -2;  // then go down 1 z-level to place consoles.
@@ -396,14 +404,14 @@ void mission_start::create_hidden_lab_console( mission *miss )
 
     // Target the lab entrance.
     const tripoint_abs_omt target = mission_util::target_closest_lab_entrance( place, 2, miss );
-    mission_util::reveal_road( player_character.global_omt_location(), target, overmap_buffer );
+    mission_util::reveal_road( player_character.pos_abs_omt(), target, overmap_buffer );
 }
 
 void mission_start::create_ice_lab_console( mission *miss )
 {
     Character &player_character = get_player_character();
     // Pick an ice lab with spaces on z = -4.
-    tripoint_abs_omt loc = player_character.global_omt_location();
+    tripoint_abs_omt loc = player_character.pos_abs_omt();
     loc.z() = -4;
     const tripoint_abs_omt place = overmap_buffer.find_closest( loc, "ice_lab", 0, false );
 
@@ -412,5 +420,5 @@ void mission_start::create_ice_lab_console( mission *miss )
 
     // Target the lab entrance.
     const tripoint_abs_omt target = mission_util::target_closest_lab_entrance( place, 2, miss );
-    mission_util::reveal_road( player_character.global_omt_location(), target, overmap_buffer );
+    mission_util::reveal_road( player_character.pos_abs_omt(), target, overmap_buffer );
 }

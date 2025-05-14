@@ -1,11 +1,15 @@
 #include <set>
-#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "avatar.h"
 #include "calendar.h"
 #include "cata_catch.h"
+#include "coordinates.h"
 #include "field.h"
-#include "json.h"
+#include "field_type.h"
+#include "flexbuffer_json.h"
 #include "json_loader.h"
 #include "magic.h"
 #include "magic_spell_effect_helpers.h"
@@ -36,6 +40,7 @@ static std::set<tripoint_abs_ms> count_fields_near(
 
 TEST_CASE( "line_attack", "[magic]" )
 {
+    map &here = get_map();
     // manually construct a testable spell
     JsonObject obj = json_loader::from_string(
                          "  {\n"
@@ -60,7 +65,7 @@ TEST_CASE( "line_attack", "[magic]" )
     // set up Character to test with, only need position
     npc &c = spawn_npc( point_bub_ms::zero, "test_talker" );
     clear_character( c );
-    c.setpos( tripoint_bub_ms::zero );
+    c.setpos( here, tripoint_bub_ms::zero );
 
     // target point 5 tiles east of zero
     tripoint_bub_ms target = c.pos_bub() + tripoint_rel_ms::east * 5;
@@ -68,11 +73,11 @@ TEST_CASE( "line_attack", "[magic]" )
     // Ensure that AOE=0 spell covers the 5 tiles along vector towards target
     SECTION( "aoe=0" ) {
         const std::set<tripoint_bub_ms> reference( {
-            c.pos_bub() + tripoint_rel_ms::east * 1,
-            c.pos_bub() + tripoint_rel_ms::east * 2,
-            c.pos_bub() + tripoint_rel_ms::east * 3,
-            c.pos_bub() + tripoint_rel_ms::east * 4,
-            c.pos_bub() + tripoint_rel_ms::east * 5,
+            c.pos_bub( here ) + tripoint_rel_ms::east * 1,
+            c.pos_bub( here ) + tripoint_rel_ms::east * 2,
+            c.pos_bub( here ) + tripoint_rel_ms::east * 3,
+            c.pos_bub( here ) + tripoint_rel_ms::east * 4,
+            c.pos_bub( here ) + tripoint_rel_ms::east * 5,
         } );
 
         std::set<tripoint_bub_ms> targets = calculate_spell_effect_area( sp, target, c );
@@ -93,11 +98,11 @@ TEST_CASE( "remove_field_fd_fatigue", "[magic]" )
 
     avatar &dummy = get_avatar();
     clear_avatar();
-    tripoint_abs_ms player_initial_pos = dummy.get_location();
+    tripoint_abs_ms player_initial_pos = dummy.pos_abs();
 
     const auto setup_and_remove_fields = [&]( const bool & with_light ) {
         CAPTURE( with_light );
-        CHECK( dummy.get_location() == player_initial_pos );
+        CHECK( dummy.pos_abs() == player_initial_pos );
 
         // create fd_fatigue of each intensity near player
         tripoint_abs_ms p1 = player_initial_pos + tripoint::east * 10;
@@ -186,14 +191,14 @@ TEST_CASE( "remove_field_fd_fatigue", "[magic]" )
            "The tear in reality pulls you in as it closes and ejects you violently!" );
 
     // check that the player got teleported
-    CHECK( dummy.get_location() != player_initial_pos );
+    CHECK( dummy.pos_abs() != player_initial_pos );
 
     // remove 3 fields again but without lighting this time
     clear_avatar();
     clear_map();
     Messages::clear_messages();
 
-    player_initial_pos = dummy.get_location();
+    player_initial_pos = dummy.pos_abs();
     setup_and_remove_fields( false );
     capture_removal_messages();
 
